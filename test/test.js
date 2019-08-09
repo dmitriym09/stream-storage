@@ -20,13 +20,16 @@ describe('StreamStorage', function () {
   });
 
   it('defaults', function () {
-    expect(this.stream.bufferSize()).to.equal(DEFAULT_INITIAL_SIZE);
-    expect(this.stream.fileSize()).to.equal(0);
+    expect(this.stream.bufferSize).to.equal(DEFAULT_INITIAL_SIZE);
+    expect(this.stream.fileSize).to.equal(0);
   });
 
   describe('simple string', function () {
     beforeEach(function () {
       return new Promise((resolve) => {
+        //this.stream.on('data', (chunk) => {
+        //  console.log(data);
+        //});
         this.stream.on('finish', resolve);
         this.len = data.simpleString.length;
         this.stream.end(data.simpleString);
@@ -34,15 +37,15 @@ describe('StreamStorage', function () {
     });
 
     it('length', function () {
-      expect(this.stream.size()).to.equal(this.len);
+      expect(this.stream.size).to.equal(this.len);
     });
 
     it('buffer size', function () {
-      expect(this.stream.bufferSize()).to.equal(DEFAULT_INITIAL_SIZE);
+      expect(this.stream.bufferSize).to.equal(DEFAULT_INITIAL_SIZE);
     });
 
     it('file size', function () {
-      expect(this.stream.fileSize()).to.equal(0);
+      expect(this.stream.fileSize).to.equal(0);
     });
 
     afterEach(function () {
@@ -63,11 +66,11 @@ describe('StreamStorage', function () {
     });
 
     it('length', function () {
-      expect(this.stream.size()).to.equal(this.len);
+      expect(this.stream.size).to.equal(this.len);
     });
 
     it('file size', function () {
-      expect(this.stream.fileSize()).to.equal(this.stream.size() - this.stream.pos());
+      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.pos);
     });
   });
 
@@ -80,9 +83,9 @@ describe('StreamStorage', function () {
 
         this.stream.on('finish', resolve);
 
-        const nIter = randomInt(1, 100);
+        const nIter = randomInt(1, 1e3);
         for (let i = 0; i < nIter; ++i) {
-          const blob = Buffer.alloc(randomInt(1, 1e3));
+          const blob = Buffer.alloc(randomInt(1, 1e4));
           for (let j = 0; j < blob.length; j++) {
             blob[j] = j % 256;
           }
@@ -95,11 +98,11 @@ describe('StreamStorage', function () {
     });
 
     it('length', function () {
-      expect(this.stream.size()).to.equal(this.len);
+      expect(this.stream.size).to.equal(this.len);
     });
 
     it('file size', function () {
-      expect(this.stream.fileSize()).to.equal(this.stream.size() - this.stream.pos());
+      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.pos);
     });
   });
 
