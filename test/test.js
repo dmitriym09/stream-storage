@@ -3,7 +3,8 @@
 const expect = require('chai').expect;
 const {
   StreamStorage,
-  DEFAULT_INITIAL_SIZE
+  DEFAULT_INITIAL_SIZE,
+  DEFAULT_MAX_SIZE
 } = require('..');
 
 const data = require('./data');
@@ -20,6 +21,7 @@ describe('StreamStorage', function () {
 
   it('defaults', function () {
     expect(this.stream.bufferSize()).to.equal(DEFAULT_INITIAL_SIZE);
+    expect(this.stream.fileSize()).to.equal(0);
   });
 
   describe('simple string', function () {
@@ -37,6 +39,10 @@ describe('StreamStorage', function () {
 
     it('buffer size', function () {
       expect(this.stream.bufferSize()).to.equal(DEFAULT_INITIAL_SIZE);
+    });
+
+    it('file size', function () {
+      expect(this.stream.fileSize()).to.equal(0);
     });
 
     afterEach(function () {
@@ -58,6 +64,10 @@ describe('StreamStorage', function () {
 
     it('length', function () {
       expect(this.stream.size()).to.equal(this.len);
+    });
+
+    it('file size', function () {
+      expect(this.stream.fileSize()).to.equal(this.stream.size() - this.stream.pos());
     });
   });
 
@@ -86,6 +96,10 @@ describe('StreamStorage', function () {
 
     it('length', function () {
       expect(this.stream.size()).to.equal(this.len);
+    });
+
+    it('file size', function () {
+      expect(this.stream.fileSize()).to.equal(this.stream.size() - this.stream.pos());
     });
   });
 
