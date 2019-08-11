@@ -27,9 +27,12 @@ describe('StreamStorage', function () {
   describe('simple string', function () {
     beforeEach(function () {
       return new Promise((resolve) => {
-        //this.stream.on('data', (chunk) => {
-        //  console.log(data);
-        //});
+        this.stream.on('data', (chunk) => {
+          console.log(chunk);
+        });
+        this.stream.on('end', (chunk) => {
+          console.log('end');
+        });
         this.stream.on('finish', resolve);
         this.len = data.simpleString.length;
         this.stream.end(data.simpleString);
