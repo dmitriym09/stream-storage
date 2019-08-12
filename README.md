@@ -38,3 +38,12 @@ const streamStorage = new StreamStorage({
  * dmitriym09 <dmitriym.09.12.1989@gmail.com>
  
 Thanks to the [node-stream-buffer](https://github.com/samcday/node-stream-buffer) for inspiration!
+
+## dev
+
+### test
+
+For run test:
+```js
+npm run test
+```
