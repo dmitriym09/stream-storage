@@ -1,6 +1,11 @@
 'use strict';
 
-const expect = require('chai').expect;
+const fs = require('fs');
+
+const {
+  assert,
+  expect
+} = require('chai');
 const {
   StreamStorage,
   DEFAULT_INITIAL_SIZE,
@@ -11,7 +16,7 @@ const data = require('./data');
 
 const randomInt = (min, max) => {
   return Math.floor(Math.random() * (max - min)) + min;
-}
+};
 
 describe('StreamStorage', function () {
   beforeEach(function () {
@@ -27,13 +32,18 @@ describe('StreamStorage', function () {
   describe('simple string', function () {
     beforeEach(function () {
       return new Promise((resolve) => {
+        this.chunks = [];
+        const onEnd = () => {
+          if (!this.stream.readable && !this.stream.writable) {
+            resolve();
+          }
+        };
+        this.stream.on('end', onEnd);
+        this.stream.on('finish', onEnd);
+
         this.stream.on('data', (chunk) => {
-          console.log(chunk);
+          this.chunks.push(chunk);
         });
-        this.stream.on('end', (chunk) => {
-          console.log('end');
-        });
-        this.stream.on('finish', resolve);
         this.len = data.simpleString.length;
         this.stream.end(data.simpleString);
       });
@@ -51,6 +61,16 @@ describe('StreamStorage', function () {
       expect(this.stream.fileSize).to.equal(0);
     });
 
+    it('content', function () {
+      expect(Buffer.concat([
+        fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
+      ]).toString()).to.equal(data.simpleString);
+    });
+
+    it('read', function () {
+      expect(Buffer.concat(this.chunks).toString()).to.equal(data.simpleString);
+    });
+
     afterEach(function () {
       this.stream.destroy();
     });
@@ -59,12 +79,21 @@ describe('StreamStorage', function () {
   describe('disk usage', function () {
     beforeEach(function () {
       return new Promise((resolve) => {
-        this.len = 0;
+        this.chunks = [];
+        const onEnd = () => {
+          if (!this.stream.readable && !this.stream.writable) {
+            resolve();
+          }
+        };
+        this.stream.on('end', onEnd);
+        this.stream.on('finish', onEnd);
 
-        this.stream.on('finish', resolve);
-
+        this.stream.on('data', (chunk) => {
+          this.chunks.push(chunk);
+        });
         this.len = data.largeBlob.length;
-        this.stream.end(data.largeBlob);
+        this.stream.write(data.largeBlob);
+        this.stream.end();
       });
     });
 
@@ -73,7 +102,17 @@ describe('StreamStorage', function () {
     });
 
     it('file size', function () {
-      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.pos);
+      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.posWrite);
+    });
+
+    it('content', function () {
+      assert.isTrue(Buffer.concat([
+        fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
+      ]).compare(data.largeBlob) === 0);
+    });
+
+    it('read', function () {
+      assert.isTrue(data.largeBlob.compare(Buffer.concat(this.chunks)) === 0);
     });
   });
 
@@ -83,17 +122,32 @@ describe('StreamStorage', function () {
 
       return new Promise((resolve) => {
         this.len = 0;
+        this.chunks = [];
+        this.blob = [];
 
-        this.stream.on('finish', resolve);
+        const onEnd = () => {
+          if (!this.stream.readable && !this.stream.writable) {
+            resolve();
+          }
+        };
+        this.stream.on('end', onEnd);
+        this.stream.on('finish', onEnd);
+
+        let nChunk = 0;
+        this.stream.on('data', (chunk) => {
+          this.chunks.push(chunk);
+          nChunk++;
+        });
 
         const nIter = randomInt(1, 1e3);
         for (let i = 0; i < nIter; ++i) {
           const blob = Buffer.alloc(randomInt(1, 1e4));
-          for (let j = 0; j < blob.length; j++) {
+          for (let j = 0; j < blob.length; ++j) {
             blob[j] = j % 256;
           }
           this.len += blob.length;
           this.stream.write(blob);
+          this.blob.push(blob);
         }
 
         this.stream.end();
@@ -105,8 +159,22 @@ describe('StreamStorage', function () {
     });
 
     it('file size', function () {
-      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.pos);
+      expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.posWrite);
     });
+
+    it('content', function () {
+      const blob = Buffer.concat(this.blob);
+      assert.isTrue(Buffer.concat([
+        fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
+      ]).compare(blob) === 0);
+    }).timeout(-1);
+
+    it('read', function () {
+      const chunks = Buffer.concat(this.chunks);
+      const blob = Buffer.concat(this.blob)
+
+      assert.isTrue(blob.compare(chunks) === 0);
+    }).timeout(-1);
   });
 
   afterEach(function () {
