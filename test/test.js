@@ -12,6 +12,16 @@ const {
   DEFAULT_MAX_SIZE
 } = require('..');
 
+let MAX_CNT = parseInt(process.env.MAX_CNT);
+if(isNaN(MAX_CNT)) {
+  MAX_CNT = 1e3;
+}
+
+let MAX_LEN = parseInt(process.env.MAX_LEN);
+if(isNaN(MAX_LEN)) {
+  MAX_LEN = 1e4;
+}
+
 const data = require('./data');
 
 const randomInt = (min, max) => {
@@ -139,11 +149,11 @@ describe('StreamStorage', function () {
           nChunk++;
         });
 
-        const nIter = randomInt(1, 1e3);
+        const nIter = randomInt(1, MAX_CNT);
         for (let i = 0; i < nIter; ++i) {
-          const blob = Buffer.alloc(randomInt(1, 1e4));
+          const blob = Buffer.alloc(randomInt(1, MAX_LEN));
           for (let j = 0; j < blob.length; ++j) {
-            blob[j] = j % 256;
+            blob[j] = randomInt(0, 255);
           }
           this.len += blob.length;
           this.stream.write(blob);
