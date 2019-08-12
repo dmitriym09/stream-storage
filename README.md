@@ -20,7 +20,7 @@ streamStorage.destroy();
 
 ### stream-storage
 
-`StreamStorage` extends the standard [`stream.Duplex`](https://nodejs.org/api/stream.html#stream_class_stream_duplex) interface. All writes data to this stream will accumulate in internal [`Buffer`](https://nodejs.org/api/buffer.html). If the internal buffer overflows it will be resized automatically. The initial size of the Buffer and the amount in which it grows can be configured in the constructor.  Data exceeding the *maxSize* of the size will be saved to a file.
+**StreamStorage** extends the standard [stream.Duplex](https://nodejs.org/api/stream.html#stream_class_stream_duplex) interface. All writes data to this stream will accumulate in internal [Buffer](https://nodejs.org/api/buffer.html). If the internal buffer overflows it will be resized automatically. The initial size of the Buffer and the amount in which it grows can be configured in the constructor.  Data exceeding the *maxSize* of the size will be saved to a file.
 
 You can change default options:
 
