@@ -1,5 +1,5 @@
 {
-  "name": "stream-cache",
+  "name": "stream-storage",
   "version": "0.0.1",
   "description": "Node duplex buffer stream for caching data.",
   "main": "index.js",
