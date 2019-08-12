@@ -1,5 +1,8 @@
 # Node stream storage
 
+![Version](https://img.shields.io/badge/version-0.0.2-green.svg)
+![npm](https://img.shields.io/npm/dy/stream-storage)
+
 Simple duplex streams for cache large data in memory and files.
 
 ```
@@ -7,7 +10,6 @@ npm install stream-storage --save
 ```
 
 ## Usage
-
 
 ```js
 const { StreamStorage } = require('stream-storage');
