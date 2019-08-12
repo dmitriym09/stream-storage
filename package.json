@@ -1,16 +1,26 @@
 {
   "name": "stream-cache",
   "version": "0.0.1",
-  "description": "",
+  "description": "Node duplex buffer stream for caching data.",
   "main": "index.js",
+   "keywords": [
+    "memory streams",
+    "streams",
+    "buffer streams",
+    "cache"
+  ],
   "scripts": {
     "test": "mocha"
   },
+  "main": "index.js",
+  "engines": {
+    "node": ">= 12.0.0"
+  },
+  "author": "dmitriym09 <dmitriym.09.12.1989@gmail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dmitriym09/stream-cache.git"
   },
-  "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/dmitriym09/stream-cache/issues"
