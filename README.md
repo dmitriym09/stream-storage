@@ -1,6 +1,6 @@
 # Node stream storage
 
-![Version](https://img.shields.io/badge/version-0.0.2-green.svg)
+![Version](https://img.shields.io/badge/version-0.0.3-green.svg)
 ![npm](https://img.shields.io/npm/dy/stream-storage)
 
 Simple duplex streams for cache large data in memory and files.
