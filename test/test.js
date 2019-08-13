@@ -8,17 +8,16 @@ const {
 } = require('chai');
 const {
   StreamStorage,
-  DEFAULT_INITIAL_SIZE,
-  DEFAULT_MAX_SIZE
+  DEFAULT_INITIAL_SIZE
 } = require('..');
 
 let MAX_CNT = parseInt(process.env.MAX_CNT);
-if(isNaN(MAX_CNT)) {
+if (isNaN(MAX_CNT)) {
   MAX_CNT = 1e3;
 }
 
 let MAX_LEN = parseInt(process.env.MAX_LEN);
-if(isNaN(MAX_LEN)) {
+if (isNaN(MAX_LEN)) {
   MAX_LEN = 1e4;
 }
 
@@ -37,6 +36,29 @@ describe('StreamStorage', function () {
   it('defaults', function () {
     expect(this.stream.bufferSize).to.equal(DEFAULT_INITIAL_SIZE);
     expect(this.stream.fileSize).to.equal(0);
+  });
+
+  describe('destroy', function () {
+    it('free', function () {
+      const stream = new StreamStorage();
+      stream.destroy();
+    });
+
+    it('on read', function () {
+      return new Promise((resolve) => {
+        const stream = new StreamStorage();
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            resolve();
+          }
+        };
+        stream.on('end', onEnd);
+        stream.on('finish', onEnd);
+
+        stream.on('data', (chunk) => {});
+        stream.destroy();
+      });
+    });
   });
 
   describe('simple string', function () {
