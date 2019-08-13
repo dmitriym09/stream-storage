@@ -1,6 +1,6 @@
 {
   "name": "stream-storage",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Node duplex buffer stream for caching data.",
   "main": "index.js",
    "keywords": [
@@ -12,7 +12,6 @@
   "scripts": {
     "test": "mocha"
   },
-  "main": "index.js",
   "engines": {
     "node": ">= 12.0.0"
   },
