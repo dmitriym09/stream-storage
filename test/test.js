@@ -2,10 +2,16 @@
 
 const fs = require('fs');
 
+const chai = require('chai');
+chai.use(require('chai-http'));
+
 const {
   assert,
   expect
-} = require('chai');
+} = chai;
+
+var streamBuffers = require('stream-buffers');
+
 const {
   StreamStorage,
   DEFAULT_INITIAL_SIZE
@@ -207,6 +213,46 @@ describe('StreamStorage', function () {
 
       assert.isTrue(blob.compare(chunks) === 0);
     }).timeout(-1);
+  });
+
+  describe('multer', function () {
+    beforeEach(function (done) {
+      this.timeout(-1);
+
+      console.log('multer', this.stream.size, this.stream.posRead);
+
+      this.server = require('./server');
+      this.requester = chai.request(this.server).keepOpen();
+
+      this.text = `Hello World ${new Date()}!`;
+      this.stream.write(this.text);
+      this.stream.end();
+
+      this.stream1 = new streamBuffers.ReadableStreamBuffer();
+      this.stream1.put('the last data this stream will ever see');
+      this.stream1.stop();
+
+      debugger;
+
+      this.requester.post('/')
+        .attach('file', this.stream, 'test.txt')
+        .field('key', 'value')
+        .end((err, res) => {
+          if(!!err) {
+            return done(err);
+          }
+          this.resp = res;
+          done();
+        });
+    });
+
+    it('requst', function () {
+      //expect(this.resp.status).to.equal(222);
+    });
+
+    after(function () {
+      this.server.close();
+    });
   });
 
   afterEach(function () {
