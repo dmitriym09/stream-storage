@@ -1,6 +1,6 @@
 # Node stream storage
 
-![Version](https://img.shields.io/badge/version-0.0.4-green.svg)
+![Version](https://img.shields.io/badge/version-0.0.5-green.svg)
 ![npm](https://img.shields.io/npm/dy/stream-storage)
 
 Simple duplex streams for cache large data in memory and files.
@@ -47,3 +47,12 @@ For run test:
 ```js
 npm run test
 ```
+
+
+## versions
+
+- **0.0.1** - init
+- **0.0.2**
+- **0.0.3**
+- **0.0.4**
+- **0.0.5** - fix pause
