@@ -42,8 +42,8 @@ describe('StreamStorage', function () {
         stream.end(simpleString)
       });
 
-      after(function() {
-        stream.clear();
+      after(async function() {
+        await stream.clear();
       })
 
       it('content', function () {
@@ -69,8 +69,8 @@ describe('StreamStorage', function () {
         expect(Buffer.concat(stream._buffers).toString() + fs.readFileSync(stream._fileName)).to.equal(simpleString + simpleString + simpleString);
       });
 
-      it('clear', function () {
-        stream.clear()
+      it('clear', async function () {
+        await stream.clear()
       });
     })
 
