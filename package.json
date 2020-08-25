@@ -10,7 +10,9 @@
     "cache"
   ],
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint --color lib/*.mjs test/*.mjs *.mjs",
+    "prettier": "prettier lib/*.mjs test/*.mjs *.mjs --write"
   },
   "engines": {
     "node": ">= 14.0.0"
@@ -27,6 +29,11 @@
   "homepage": "https://github.com/dmitriym09/stream-cache#readme",
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.1.1"
+    "eslint": "^7.7.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-jsdoc": "^30.2.4",
+    "eslint-plugin-prettier": "^3.1.4",
+    "mocha": "^8.1.1",
+    "prettier": "^2.1.0"
   }
 }

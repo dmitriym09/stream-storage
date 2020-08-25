@@ -1,6 +1,4 @@
-import {
-    DEFAULT_MAX_MEMORY_SIZE
-} from '../index.mjs';
+import { DEFAULT_MAX_MEMORY_SIZE } from '../index.mjs';
 
 const simpleString = 'String';
 
@@ -9,7 +7,4 @@ for (let i = 0; i < largeBlob.length; i++) {
     largeBlob[i] = i % 256;
 }
 
-export {
-    simpleString,
-    largeBlob
-};
+export { simpleString, largeBlob };
