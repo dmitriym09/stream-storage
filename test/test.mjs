@@ -156,7 +156,7 @@ describe('StreamStorage', () => {
                 }
             })();
 
-            const stream = new StreamStorage({
+            let stream = new StreamStorage({
                 maxMemorySize: 2,
             });
 
@@ -193,6 +193,28 @@ describe('StreamStorage', () => {
 
             it('content', () => {
                 expect(Buffer.concat(chunks).toString()).to.equal(data);
+            });
+
+            it('moved', done => {
+                const repeatChunks = [];
+                const newStream = stream.move();
+
+                assert.isTrue(stream.isMoved);
+                assert.isTrue(!newStream.isMoved);
+
+                stream = newStream;
+
+                stream
+                    .on('end', () => {
+                        expect(Buffer.concat(repeatChunks).toString()).to.equal(
+                            data,
+                        );
+                        done();
+                    })
+                    .on('data', chunk => {
+                        repeatChunks.push(chunk);
+                    })
+                    .end();
             });
         });
 
@@ -240,7 +262,7 @@ describe('StreamStorage', () => {
                 }
             })();
 
-            before(done => {
+            before(function (done) {
                 this.timeout(60000);
                 const onEnd = () => {
                     if (!stream.readable && !stream.writable) {
