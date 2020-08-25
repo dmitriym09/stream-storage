@@ -1,4 +1,6 @@
-import fs from 'fs';
+import fs, {
+  copyFile
+} from 'fs';
 
 import chai from 'chai';
 
@@ -126,8 +128,8 @@ describe('StreamStorage', function () {
         const chunks = [];
         const onEnd = () => {
           if (!stream.readable && !stream.writable) {
-            const readed = Buffer.concat(chunks).toString();
             expect(Buffer.concat(stream._buffers).toString() + fs.readFileSync(stream._fileName)).to.equal(simpleString + simpleString + simpleString);
+            expect(Buffer.concat(chunks).toString()).to.equal(simpleString + simpleString + simpleString);
             done();
           }
         };
@@ -138,9 +140,6 @@ describe('StreamStorage', function () {
         stream.on('data', chunk => {
           chunks.push(chunk);
         });
-
-
-
       });
 
       it('clear', async function () {
@@ -148,219 +147,140 @@ describe('StreamStorage', function () {
       });
     });
   });
+
+  describe('Duplex', function () {
+    describe('pipeline', function () {
+      const data = '1234567890ABCabc---((()))';
+      const gen = (function* () {
+        for (const ch of data) {
+          yield ch;
+        }
+      })()
+
+      const stream = new StreamStorage({
+        maxMemorySize: 2
+      });
+
+      const chunks = [];
+
+      before(function (done) {
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            done();
+          }
+        };
+
+        const writeCh = () => {
+          const {
+            done,
+            value
+          } = gen.next();
+          if (done) {
+            stream.end();
+          } else {
+            stream.write(value);
+          }
+        }
+
+        stream.on('finish', onEnd);
+        stream.on('end', onEnd);
+        stream.on('data', chunk => {
+          chunks.push(chunk);
+          writeCh();
+        });
+        writeCh();
+      });
+
+      after(async function () {
+        await stream.clear();
+      });
+
+      it('content', () => {
+        expect(Buffer.concat(chunks).toString()).to.equal(data);
+      })
+    });
+
+
+    describe('largeBlob', function () {
+      const stream = new StreamStorage();
+
+      const chunks = [];
+
+      before(function (done) {
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            done();
+          }
+        };
+
+        stream.on('finish', onEnd);
+        stream.on('end', onEnd);
+        stream.on('data', chunk => {
+          chunks.push(chunk)
+        });
+        stream.end(largeBlob);
+      });
+
+      after(async function () {
+        await stream.clear();
+      });
+
+      it('content', () => {
+        assert.isTrue(largeBlob.compare(Buffer.concat(chunks)) === 0);
+      })
+    });
+
+    describe('largeBlob random write', function () {
+      const stream = new StreamStorage();
+
+      const chunks = [];
+
+      const gen = (function* () {
+        let start = 0;
+        let end = 0;
+        while(end < largeBlob.length) {
+          end = Math.min(largeBlob.length, end + randomInt(1, 0xfff));
+          yield largeBlob.slice(start, end);
+          start = end;
+        }
+      })()
+
+      before(function (done) {
+        this.timeout(60000);
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            done();
+          }
+        };
+
+        const write = () => {
+          const {
+            done,
+            value
+          } = gen.next();
+          if (done) {
+            stream.end();
+          } else {
+            stream.write(value);
+          }
+        }
+
+        stream.on('finish', onEnd);
+        stream.on('end', onEnd);
+        stream.on('data', chunk => {
+          chunks.push(chunk);
+          write();
+        });
+        write();
+      });
+
+      after(async function () {
+        await stream.clear();
+      });
+
+      it('content', () => {
+        assert.isTrue(largeBlob.compare(Buffer.concat(chunks)) === 0);
+      })
+    });
+  });
 });
-
-// describe('StreamStorage', function () {
-//   beforeEach(function () {
-//     // this.len = 0;
-//     // this.stream = new StreamStorage();
-//   });
-
-//   it('defaults', function () {
-//     // expect(this.stream.bufferSize).to.equal(DEFAULT_INITIAL_SIZE);
-//     // expect(this.stream.fileSize).to.equal(0);
-//   });
-
-//   describe('destroy', function () {
-//     // it('free', function () {
-//     //   const stream = new StreamStorage();
-//     //   stream.destroy();
-//     // });
-
-//     // it('on read', function () {
-//     //   return new Promise(resolve => {
-//     //     const stream = new StreamStorage();
-//     //     const onEnd = () => {
-//     //       if (!stream.readable && !stream.writable) {
-//     //         resolve();
-//     //       }
-//     //     };
-//     //     stream.on('end', onEnd);
-//     //     stream.on('finish', onEnd);
-
-//     //     stream.on('data', () => {});
-//     //     stream.destroy();
-//     //   });
-//     // });
-//   });
-
-//   describe('simple string', function () {
-//     beforeEach(function () {
-//       return new Promise(resolve => {
-//         this.chunks = [];
-//         const onEnd = () => {
-//           if (!this.stream.readable && !this.stream.writable) {
-//             resolve();
-//           }
-//         };
-//         this.stream.on('end', onEnd);
-//         this.stream.on('finish', onEnd);
-
-//         this.stream.on('data', chunk => {
-//           console.log('chunk1')
-//           this.chunks.push(chunk);
-//         });
-//         this.len = simpleString.length;
-//         this.stream.end(simpleString);
-//       });
-//     });
-
-//     // it('length', function () {
-//     //   expect(this.stream.size).to.equal(this.len);
-//     // });
-
-//     // it('buffer size', function () {
-//     //   expect(this.stream.bufferSize).to.equal(DEFAULT_INITIAL_SIZE);
-//     // });
-
-//     // it('file size', function () {
-//     //   expect(this.stream.fileSize).to.equal(0);
-//     // });
-
-//     // it('content', function () {
-//     //   expect(Buffer.concat([
-//     //     fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
-//     //   ]).toString()).to.equal(simpleString);
-//     // });
-
-//     // it('chunks', function () {
-//     //   expect(Buffer.concat(this.chunks).toString()).to.equal(simpleString);
-//     // });
-
-//   //   it('resume', function (done) {
-//   //     console.log('\n\n\n\n>>>')
-
-//   //     console.log(this.stream.posWrite);
-//   //     console.log(this.stream.posRead);
-
-//   //     const chunks = [];
-//   //       const onEnd = () => {
-//   //         console.log('onEnd')
-//   //         if (!this.stream.readable && !this.stream.writable) {
-//   //           done();
-//   //         }
-//   //       };
-//   //       this.stream.on('end', onEnd);
-//   //       this.stream.on('finish', onEnd);
-
-//   //       this.stream.on('data', chunk => {
-//   //         console.log('chink2')
-//   //         this.chunks.push(chunk);
-//   //       });
-//   //       console.log(this.stream.posWrite);
-//   //       console.log(this.stream.posRead);
-//   //       this.stream.resume();
-//   //       console.log(this.stream)
-//   //       //
-//   //   });
-
-//   //   afterEach(function () {
-//   //     this.stream.destroy();
-//   //   });
-//    });
-
-//   // describe('disk usage', function () {
-//   //   beforeEach(function () {
-//   //     return new Promise(resolve => {
-//   //       this.chunks = [];
-//   //       const onEnd = () => {
-//   //         if (!this.stream.readable && !this.stream.writable) {
-//   //           resolve();
-//   //         }
-//   //       };
-//   //       this.stream.on('end', onEnd);
-//   //       this.stream.on('finish', onEnd);
-
-//   //       this.stream.on('data', chunk => {
-//   //         this.chunks.push(chunk);
-//   //       });
-//   //       this.len = largeBlob.length;
-//   //       this.stream.write(largeBlob);
-//   //       this.stream.end();
-//   //     });
-//   //   });
-
-//   //   it('length', function () {
-//   //     expect(this.stream.size).to.equal(this.len);
-//   //   });
-
-//   //   it('file size', function () {
-//   //     expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.posWrite);
-//   //   });
-
-//   //   it('content', function () {
-//   //     assert.isTrue(Buffer.concat([
-//   //       fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
-//   //     ]).compare(largeBlob) === 0);
-//   //   });
-
-//   //   it('read', function () {
-//   //     assert.isTrue(largeBlob.compare(Buffer.concat(this.chunks)) === 0);
-//   //   });
-//   // });
-
-//   // describe('random', function () {
-//   //   this.beforeEach(async function () {
-//   //     this.timeout(-1);
-
-//   //     return new Promise((resolve) => {
-//   //       this.len = 0;
-//   //       this.chunks = [];
-//   //       this.blob = [];
-
-//   //       const onEnd = () => {
-//   //         if (!this.stream.readable && !this.stream.writable) {
-//   //           resolve();
-//   //         }
-//   //       };
-//   //       this.stream.on('end', onEnd);
-//   //       this.stream.on('finish', onEnd);
-
-//   //       let nChunk = 0;
-//   //       this.stream.on('data', (chunk) => {
-//   //         this.chunks.push(chunk);
-//   //         nChunk++;
-//   //       });
-
-//   //       const nIter = randomInt(1, MAX_CNT);
-//   //       for (let i = 0; i < nIter; ++i) {
-//   //         const blob = Buffer.alloc(randomInt(1, MAX_LEN));
-//   //         for (let j = 0; j < blob.length; ++j) {
-//   //           blob[j] = randomInt(0, 255);
-//   //         }
-//   //         this.len += blob.length;
-//   //         this.stream.write(blob);
-//   //         this.blob.push(blob);
-//   //       }
-
-//   //       this.stream.end();
-//   //     });
-//   //   });
-
-//   //   it('length', function () {
-//   //     expect(this.stream.size).to.equal(this.len);
-//   //   });
-
-//   //   it('file size', function () {
-//   //     expect(this.stream.fileSize).to.equal(this.stream.size - this.stream.posWrite);
-//   //   });
-
-//   //   it('content', function () {
-//   //     const blob = Buffer.concat(this.blob);
-//   //     assert.isTrue(Buffer.concat([
-//   //       fs.existsSync(this.stream.fileName) ? fs.readFileSync(this.stream.fileName) : Buffer.alloc(0), this.stream._buffer.slice(0, this.stream.posWrite)
-//   //     ]).compare(blob) === 0);
-//   //   }).timeout(-1);
-
-//   //   it('read', function () {
-//   //     const chunks = Buffer.concat(this.chunks);
-//   //     const blob = Buffer.concat(this.blob)
-
-//   //     assert.isTrue(blob.compare(chunks) === 0);
-//   //   }).timeout(-1);
-//   // });
-
-//   // afterEach(function () {
-//   //   this.stream.destroy();
-//   // });
-// });
