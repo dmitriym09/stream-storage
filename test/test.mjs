@@ -42,7 +42,7 @@ describe('StreamStorage', function () {
         stream.end(simpleString)
       });
 
-      after(async function() {
+      after(async function () {
         await stream.clear();
       })
 
@@ -72,11 +72,82 @@ describe('StreamStorage', function () {
       it('clear', async function () {
         await stream.clear()
       });
-    })
+    });
 
   })
 
+  describe('Readable', function () {
+    describe('memory', function () {
+      const stream = new StreamStorage({
+        maxMemorySize: simpleString.length
+      });
 
+      before(function (done) {
+        stream.on('finish', done);
+        stream.end(simpleString)
+      });
+
+      after(async function () {
+        await stream.clear();
+      })
+
+      it('content', function (done) {
+        const chunks = [];
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            const readed = Buffer.concat(chunks).toString();
+            expect(readed).to.equal(simpleString)
+            done();
+          }
+        };
+
+        stream.on('end', onEnd);
+        stream.on('finish', onEnd);
+
+        stream.on('data', chunk => {
+          chunks.push(chunk);
+        });
+      });
+    });
+
+    describe('fs', function () {
+      const stream = new StreamStorage({
+        maxMemorySize: simpleString.length
+      });
+
+      before(function (done) {
+        stream.on('finish', done);
+        stream.write(simpleString);
+        stream.write(simpleString);
+        stream.end(simpleString);
+      });
+
+      it('content', function (done) {
+        const chunks = [];
+        const onEnd = () => {
+          if (!stream.readable && !stream.writable) {
+            const readed = Buffer.concat(chunks).toString();
+            expect(Buffer.concat(stream._buffers).toString() + fs.readFileSync(stream._fileName)).to.equal(simpleString + simpleString + simpleString);
+            done();
+          }
+        };
+
+        stream.on('end', onEnd);
+        stream.on('finish', onEnd);
+
+        stream.on('data', chunk => {
+          chunks.push(chunk);
+        });
+
+
+
+      });
+
+      it('clear', async function () {
+        await stream.clear()
+      });
+    });
+  });
 });
 
 // describe('StreamStorage', function () {
