@@ -2,14 +2,9 @@ import fs from 'fs';
 
 import chai from 'chai';
 
-const {
-    assert,
-    expect
-} = chai;
+const { assert, expect } = chai;
 
-import {
-    StreamStorage
-} from '../index.mjs';
+import { StreamStorage } from '../index.mjs';
 
 let MAX_CNT = parseInt(process.env.MAX_CNT);
 if (isNaN(MAX_CNT)) {
@@ -21,10 +16,7 @@ if (isNaN(MAX_LEN)) {
     MAX_LEN = 1e4;
 }
 
-import {
-    simpleString,
-    largeBlob
-} from './data.mjs';
+import { simpleString, largeBlob } from './data.mjs';
 
 const randomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -70,7 +62,7 @@ describe('StreamStorage', () => {
                 expect(stream.size).to.equal(simpleString.length * 3);
                 expect(
                     Buffer.concat(stream._buffers).toString() +
-                    fs.readFileSync(stream._fileName),
+                        fs.readFileSync(stream._fileName),
                 ).to.equal(simpleString + simpleString + simpleString);
             });
 
@@ -132,7 +124,7 @@ describe('StreamStorage', () => {
                     if (!stream.readable && !stream.writable) {
                         expect(
                             Buffer.concat(stream._buffers).toString() +
-                            fs.readFileSync(stream._fileName),
+                                fs.readFileSync(stream._fileName),
                         ).to.equal(simpleString + simpleString + simpleString);
                         expect(Buffer.concat(chunks).toString()).to.equal(
                             simpleString + simpleString + simpleString,
@@ -178,10 +170,7 @@ describe('StreamStorage', () => {
                 };
 
                 const writeCh = () => {
-                    const {
-                        done,
-                        value
-                    } = gen.next();
+                    const { done, value } = gen.next();
                     if (done) {
                         stream.end();
                     } else {
@@ -282,10 +271,7 @@ describe('StreamStorage', () => {
                 };
 
                 const write = () => {
-                    const {
-                        done,
-                        value
-                    } = gen.next();
+                    const { done, value } = gen.next();
                     if (done) {
                         stream.end();
                     } else {
@@ -310,7 +296,6 @@ describe('StreamStorage', () => {
                 assert.isTrue(largeBlob.compare(Buffer.concat(chunks)) === 0);
             });
         });
-
 
         describe('empty', () => {
             const chunks = [];
@@ -343,6 +328,5 @@ describe('StreamStorage', () => {
                 await stream.clear();
             });
         });
-
     });
 });
