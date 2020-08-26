@@ -296,5 +296,37 @@ describe('StreamStorage', () => {
                 assert.isTrue(largeBlob.compare(Buffer.concat(chunks)) === 0);
             });
         });
+
+        describe('empty', () => {
+            const chunks = [];
+            const stream = new StreamStorage();
+
+            before(done => {
+                const onEnd = () => {
+                    if (!stream.readable && !stream.writable) {
+                        done();
+                    }
+                };
+
+                stream.on('finish', onEnd);
+                stream.on('end', onEnd);
+                stream.on('data', chunk => {
+                    chunks.push(chunk);
+                });
+                stream.end();
+            });
+
+            it('size', () => {
+                expect(stream.size).to.equal(0);
+            });
+
+            it('content', () => {
+                expect(chunks.length).to.equal(0);
+            });
+
+            after(async () => {
+                await stream.clear();
+            });
+        });
     });
 });
